@@ -1,0 +1,38 @@
+CXR-LT ISBI 2026 - WINNING PLAN PHASES
+======================================
+
+PHASE 1: Strong Baseline (Days 1-3)
+- Data Pipeline with patient-level split
+- ResNet50 baseline with BCEWithLogitsLoss
+- Standard augmentation
+
+PHASE 2: Long-Tailed Techniques (Days 4-8)
+- Two-Stage Training (DRW/cRT)
+- Focal Loss, LDAM Loss, Class-Balanced Focal
+- Sampling strategies
+
+PHASE 3: Advanced Techniques (Days 9-14)
+- Better backbones (DenseNet121, EfficientNet, ConvNeXt)
+- CXR pre-trained weights
+- Label co-occurrence (ML-GCN)
+- Ensemble strategies
+
+PHASE 4: Final Push (Days 15-20)
+- Test-Time Augmentation
+- Threshold optimization
+- Calibration
+
+PHASE 5: Submission (Days 21-24)
+- Clean code
+- Final submission
+
+KEY INFO:
+- 30 classes, 142928 training images
+- Imbalance ratio: 1076:1
+- Primary metric: mAP
+- Test set: 1621 images
+
+PATHS:
+- Images: Dataset/images/
+- Train CSV: CXRLT-2026-TRAINING-DATA/CXRLT_2026_training.csv
+- Test CSV: CXRLT-2026-TRAINING-DATA/CXRLT_2026_TEST_ALL_TASK1.csv
