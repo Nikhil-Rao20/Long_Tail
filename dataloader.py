@@ -119,7 +119,7 @@ def get_pos_weights(df):
     return torch.tensor(pos_weights, dtype=torch.float32)
 
 
-def create_dataloaders(train_df, val_df):
+def create_dataloaders(train_df, val_df, sampler=None):
     """Create train and validation dataloaders."""
     train_dataset = CXRDataset(
         train_df, IMAGE_DIR, transform=get_train_transforms(), is_test=False
@@ -128,14 +128,25 @@ def create_dataloaders(train_df, val_df):
         val_df, IMAGE_DIR, transform=get_val_transforms(), is_test=False
     )
     
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=BATCH_SIZE,
-        shuffle=True,
-        num_workers=NUM_WORKERS,
-        pin_memory=True,
-        drop_last=True
-    )
+    # Use sampler if provided, otherwise shuffle
+    if sampler is not None:
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=BATCH_SIZE,
+            sampler=sampler,
+            num_workers=NUM_WORKERS,
+            pin_memory=True,
+            drop_last=True
+        )
+    else:
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=BATCH_SIZE,
+            shuffle=True,
+            num_workers=NUM_WORKERS,
+            pin_memory=True,
+            drop_last=True
+        )
     
     val_loader = DataLoader(
         val_dataset,

@@ -99,7 +99,125 @@ class AsymmetricLoss(nn.Module):
         return loss.mean()
 
 
-def get_loss_function(loss_type, class_counts=None, pos_weight=None):
+class LDAMLoss(nn.Module):
+    """
+    LDAM Loss for long-tailed recognition (Cao et al., NeurIPS 2019).
+    Adapted for multi-label classification.
+    Assigns larger margins to tail classes.
+    """
+    
+    def __init__(self, class_counts, max_margin=0.5, scale=30.0):
+        super().__init__()
+        self.scale = scale
+        
+        # Calculate margins inversely proportional to class frequency
+        class_counts = torch.tensor(class_counts, dtype=torch.float32)
+        margins = 1.0 / torch.sqrt(torch.sqrt(class_counts))
+        margins = margins * (max_margin / margins.max())
+        self.register_buffer('margins', margins)
+        
+    def forward(self, logits, targets):
+        # Apply margin to positive class logits
+        margins = self.margins.to(logits.device)
+        margin_logits = logits - targets * margins.unsqueeze(0)
+        
+        loss = nn.functional.binary_cross_entropy_with_logits(
+            self.scale * margin_logits, targets
+        )
+        return loss
+
+
+class DRWLoss(nn.Module):
+    """
+    Deferred Re-Weighting Loss for two-stage training (Cao et al., NeurIPS 2019).
+    First stage: standard loss. Second stage: class-balanced weights.
+    """
+    
+    def __init__(self, class_counts, drw_epoch=10, beta=0.9999):
+        super().__init__()
+        self.drw_epoch = drw_epoch
+        self.current_epoch = 0
+        
+        # Calculate class-balanced weights
+        class_counts = torch.tensor(class_counts, dtype=torch.float32)
+        effective_num = 1.0 - torch.pow(beta, class_counts)
+        weights = (1.0 - beta) / effective_num
+        weights = weights / weights.sum() * len(class_counts)
+        self.register_buffer('cb_weights', weights)
+        self.register_buffer('uniform_weights', torch.ones_like(weights))
+        
+    def update_epoch(self, epoch):
+        self.current_epoch = epoch
+        
+    def forward(self, logits, targets):
+        if self.current_epoch < self.drw_epoch:
+            weights = self.uniform_weights
+        else:
+            weights = self.cb_weights
+            
+        weights = weights.to(logits.device)
+        
+        bce_loss = nn.functional.binary_cross_entropy_with_logits(
+            logits, targets, reduction='none'
+        )
+        
+        # Apply weights to positive samples
+        weighted_loss = bce_loss * (targets * weights + (1 - targets))
+        return weighted_loss.mean()
+
+
+class LDAMDRWLoss(nn.Module):
+    """
+    LDAM + DRW combined loss.
+    Best performing loss for long-tailed recognition.
+    """
+    
+    def __init__(self, class_counts, max_margin=0.5, scale=30.0, drw_epoch=10, beta=0.9999):
+        super().__init__()
+        self.scale = scale
+        self.drw_epoch = drw_epoch
+        self.current_epoch = 0
+        
+        class_counts = torch.tensor(class_counts, dtype=torch.float32)
+        
+        # Margins for LDAM
+        margins = 1.0 / torch.sqrt(torch.sqrt(class_counts))
+        margins = margins * (max_margin / margins.max())
+        self.register_buffer('margins', margins)
+        
+        # Weights for DRW
+        effective_num = 1.0 - torch.pow(beta, class_counts)
+        weights = (1.0 - beta) / effective_num
+        weights = weights / weights.sum() * len(class_counts)
+        self.register_buffer('cb_weights', weights)
+        self.register_buffer('uniform_weights', torch.ones_like(weights))
+        
+    def update_epoch(self, epoch):
+        self.current_epoch = epoch
+        
+    def forward(self, logits, targets):
+        margins = self.margins.to(logits.device)
+        
+        # Apply LDAM margins
+        margin_logits = logits - targets * margins.unsqueeze(0)
+        
+        # DRW weights
+        if self.current_epoch < self.drw_epoch:
+            weights = self.uniform_weights
+        else:
+            weights = self.cb_weights
+            
+        weights = weights.to(logits.device)
+        
+        bce_loss = nn.functional.binary_cross_entropy_with_logits(
+            self.scale * margin_logits, targets, reduction='none'
+        )
+        
+        weighted_loss = bce_loss * (targets * weights + (1 - targets))
+        return weighted_loss.mean()
+
+
+def get_loss_function(loss_type, class_counts=None, pos_weight=None, drw_epoch=10):
     """Factory function to get loss function."""
     if loss_type == "bce":
         return BCEWithLogitsLossWeighted(pos_weight=pos_weight)
@@ -110,5 +228,14 @@ def get_loss_function(loss_type, class_counts=None, pos_weight=None):
         return ClassBalancedFocalLoss(class_counts, beta=0.9999, gamma=2.0)
     elif loss_type == "asymmetric":
         return AsymmetricLoss(gamma_neg=4, gamma_pos=1)
+    elif loss_type == "ldam":
+        assert class_counts is not None, "class_counts required for ldam"
+        return LDAMLoss(class_counts, max_margin=0.5, scale=30.0)
+    elif loss_type == "drw":
+        assert class_counts is not None, "class_counts required for drw"
+        return DRWLoss(class_counts, drw_epoch=drw_epoch, beta=0.9999)
+    elif loss_type == "ldam_drw":
+        assert class_counts is not None, "class_counts required for ldam_drw"
+        return LDAMDRWLoss(class_counts, max_margin=0.5, scale=30.0, drw_epoch=drw_epoch)
     else:
         raise ValueError(f"Unknown loss type: {loss_type}")
