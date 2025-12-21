@@ -83,33 +83,16 @@ def save_checkpoint(model, optimizer, epoch, metrics, filename):
     print(f"Checkpoint saved: {filepath}")
 
 
-# def load_checkpoint(model, optimizer, filepath):
-#     """Load model checkpoint."""
-#     checkpoint = torch.load(filepath, map_location=DEVICE)
-#     model.load_state_dict(checkpoint['model_state_dict'])
-#     if optimizer is not None:
-#         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-#     epoch = checkpoint['epoch']
-#     metrics = checkpoint['metrics']
-#     print(f"Checkpoint loaded from epoch {epoch}")
-#     return epoch, metrics
-
 def load_checkpoint(model, optimizer, filepath):
     """Load model checkpoint."""
-    checkpoint = torch.load(filepath, map_location=DEVICE, weights_only=False)
-    if isinstance(checkpoint, dict):
-        state_dict = (
-            checkpoint.get("model_state_dict")
-            or checkpoint.get("state_dict")
-            or checkpoint.get("model")
-            or checkpoint
-        )
-    else:
-        state_dict = checkpoint
-    model.load_state_dict(state_dict, strict=False)
+    checkpoint = torch.load(filepath, map_location=DEVICE)
+    model.load_state_dict(checkpoint['model_state_dict'])
     if optimizer is not None:
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    return None
+    epoch = checkpoint['epoch']
+    metrics = checkpoint['metrics']
+    print(f"Checkpoint loaded from epoch {epoch}")
+    return epoch, metrics
 
 
 def train_model(

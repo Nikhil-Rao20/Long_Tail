@@ -12,7 +12,7 @@ PHASE 2: Long-Tailed Techniques (Days 4-8)
 - Sampling strategies
 
 PHASE 3: Advanced Techniques (Days 9-14)
-- Better backbones (DenseNet121, EfficientNet, ConvNeXt)
+- Better backbones (EfficientNet, ConvNeXt)
 - CXR pre-trained weights
 - Label co-occurrence (ML-GCN)
 - Ensemble strategies

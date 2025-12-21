@@ -9,7 +9,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
 from config import (
-    IMAGE_DIR, TEST_IMAGE_DIR, TRAIN_CSV, TEST_CSV, CLASS_NAMES, 
+    IMAGE_DIR, TRAIN_CSV, TEST_CSV, CLASS_NAMES, 
     IMAGE_SIZE, BATCH_SIZE, NUM_WORKERS, VAL_SPLIT, RANDOM_SEED
 )
 
@@ -164,7 +164,7 @@ def create_test_dataloader():
     test_df = pd.read_csv(TEST_CSV)
     
     test_dataset = CXRDataset(
-        test_df, TEST_IMAGE_DIR, transform=get_val_transforms(), is_test=True
+        test_df, IMAGE_DIR, transform=get_val_transforms(), is_test=True
     )
     
     test_loader = DataLoader(
