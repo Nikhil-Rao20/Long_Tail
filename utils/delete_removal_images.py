@@ -1,9 +1,11 @@
 # Move images listed in Removal.csv to a backup folder
 import shutil
 from tqdm import tqdm
-
-images_dir = Path(r'c:\Users\nikhi\Desktop\CXR_LT_ISBI\Dataset\images')
-backup_dir = Path(r'c:\Users\nikhi\Desktop\CXR_LT_ISBI\Dataset\removed_images_backup')
+import pandas as pd
+removal_df = pd.read_csv(r'CXRLT-2026-TRAINING-DATA/Removal.csv')
+from pathlib import Path
+images_dir = Path(r'Dataset/images')
+backup_dir = Path(r'Dataset/removed_images_backup')
 backup_dir.mkdir(parents=True, exist_ok=True)
 
 removal_ids = set(removal_df['ImageID'].values)
