@@ -209,3 +209,5 @@ __marimo__/
 
 /Dataset/**
 **/__pycache__/
+/new_submission/**
+/outputs/**
