@@ -3,7 +3,8 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "Dataset")
 IMAGE_DIR = os.path.join(DATA_DIR, "images")
-TRAIN_CSV = os.path.join(BASE_DIR, "CXRLT-2026-TRAINING-DATA", "CXRLT_2026_training.csv")
+TEST_IMAGE_DIR = os.path.join(DATA_DIR, "removed_images_backup")
+TRAIN_CSV = os.path.join(BASE_DIR, "CXRLT-2026-TRAINING-DATA", "CXRLT_2026_training_filtered.csv")
 TEST_CSV = os.path.join(BASE_DIR, "CXRLT-2026-TRAINING-DATA", "CXRLT_2026_TEST_ALL_TASK1.csv")
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
 CHECKPOINT_DIR = os.path.join(OUTPUT_DIR, "checkpoints")
@@ -28,11 +29,11 @@ NUM_CLASSES = len(CLASS_NAMES)
 
 # Training params
 IMAGE_SIZE = 512
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 NUM_WORKERS = 4
 LEARNING_RATE = 1e-4
 WEIGHT_DECAY = 1e-5
-NUM_EPOCHS = 30
+NUM_EPOCHS = 15
 VAL_SPLIT = 0.1
 RANDOM_SEED = 42
 
