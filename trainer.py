@@ -87,6 +87,7 @@ def load_checkpoint(model, optimizer, filepath):
     """Load model checkpoint."""
     checkpoint = torch.load(filepath, map_location=DEVICE)
     model.load_state_dict(checkpoint['model_state_dict'])
+    # model.load_state_dict(checkpoint, strict=False)
     if optimizer is not None:
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint['epoch']
